@@ -24,7 +24,10 @@ function ProtectedRoute({ children }) {
 
 function App() {
   const { checkAuth, user } = useAuthStore();
-  useEffect(() => { checkAuth(); }, []);
+  useEffect(() => {
+    checkAuth();
+    fetch(import.meta.env.VITE_API_URL + '/').catch(() => { });
+  }, []);
 
   return (
     <>
