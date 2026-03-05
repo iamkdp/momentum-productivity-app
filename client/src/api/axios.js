@@ -5,13 +5,19 @@ const api = axios.create({
   withCredentials: true
 });
 
-// Auto-refresh on 401
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config;
 
-    if (error.response?.status === 401 && !original._retry) {
+    // ← Don't intercept auth check calls — let them fail silently
+    const isAuthCall =
+      original.url.includes('/auth/me') ||
+      original.url.includes('/auth/refresh') ||
+      original.url.includes('/auth/login') ||
+      original.url.includes('/auth/register');
+
+    if (error.response?.status === 401 && !original._retry && !isAuthCall) {
       original._retry = true;
       try {
         await axios.post(
@@ -21,10 +27,10 @@ api.interceptors.response.use(
         );
         return api(original);
       } catch {
-        window.location.href = '/login';
-        // return Promise.reject(error);
+        window.location.href = '/login'; // only fires for protected routes now
       }
     }
+
     return Promise.reject(error);
   }
 );
