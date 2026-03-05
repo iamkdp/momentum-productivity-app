@@ -2,7 +2,7 @@
 
 > Gamified productivity. Build streaks. Earn points. Own your day.
 
-**[Live Demo](https://momentum-iamkdps-projects.vercel.app)** · **[Report Bug](https://github.com/iamkdp/momentum/issues)**
+**[Live Demo](https://momentum-nu-plum.vercel.app/)** · **[Report Bug](https://github.com/iamkdp/momentum/issues)**
 
 ---
 
