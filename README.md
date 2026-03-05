@@ -214,7 +214,7 @@ GET    /api/quote
 ## Author
 
 **K Durga Prasad**
-[GitHub](https://github.com/iamkdp) · [LinkedIn](https://linkedin.com/in/iamkdp)
+[GitHub](https://github.com/iamkdp) · [LinkedIn](https://linkedin.com/in/iamkdp](https://www.linkedin.com/in/durga-prasad-kokkera-9965a8252/))
 
 ---
 
