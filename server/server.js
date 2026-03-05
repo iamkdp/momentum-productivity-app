@@ -16,14 +16,17 @@ connectDB();
 const app = express();
 
 const allowedOrigins = [
-  process.env.CLIENT_URL,
   'http://localhost:5173',
   'https://momentum-nu-plum.vercel.app',
 ];
 
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
