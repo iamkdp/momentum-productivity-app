@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { useAuthStore } from '../store/authStore';
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL + '/api',
   withCredentials: true // still needed for refresh token cookie
@@ -37,14 +37,13 @@ api.interceptors.response.use(
         );
         const newToken = res.data.accessToken;
 
-        // update store with new token
-        const { useAuthStore } = require('../store/authStore');
         useAuthStore.getState().setAccessToken(newToken);
 
         original.headers.Authorization = `Bearer ${newToken}`;
         return api(original);
       } catch {
         window.location.href = '/login';
+        
       }
     }
 
