@@ -1,21 +1,26 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL + '/api',
-  withCredentials: true // still needed for refresh token cookie
+  withCredentials: true
 });
 
-// ← Attach accessToken from store to every request
+// ── Token stored locally in this module ──────────────────
+let _accessToken = null;
+
+export const setToken = (token) => { _accessToken = token; };
+export const getToken = () => _accessToken;
+export const clearToken = () => { _accessToken = null; };
+
+// ── Attach token to every request ────────────────────────
 api.interceptors.request.use((config) => {
-  // dynamic import avoids circular dependency
-  const { useAuthStore } = require('../store/authStore');
-  const token = useAuthStore.getState().accessToken;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (_accessToken) {
+    config.headers.Authorization = `Bearer ${_accessToken}`;
   }
   return config;
 });
 
+// ── Auto refresh on 401 ───────────────────────────────────
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -35,15 +40,12 @@ api.interceptors.response.use(
           {},
           { withCredentials: true }
         );
-        const newToken = res.data.accessToken;
-
-        useAuthStore.getState().setAccessToken(newToken);
-
-        original.headers.Authorization = `Bearer ${newToken}`;
+        _accessToken = res.data.accessToken;
+        original.headers.Authorization = `Bearer ${_accessToken}`;
         return api(original);
       } catch {
+        _accessToken = null;
         window.location.href = '/login';
-        
       }
     }
 
