@@ -1,40 +1,40 @@
 import { create } from 'zustand';
-import api from '../api/axios.js';
+import api, { setToken, clearToken } from '../api/axios.js';
 
 export const useAuthStore = create((set) => ({
   user: null,
-  accessToken: null,
   isLoading: true,
 
   register: async (username, email, password) => {
     const res = await api.post('/auth/register', { username, email, password });
-    set({ user: res.data.user, accessToken: res.data.accessToken });
+    setToken(res.data.accessToken); // ← store token in axios module
+    set({ user: res.data.user });
   },
 
   login: async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    set({ user: res.data.user, accessToken: res.data.accessToken });
+    setToken(res.data.accessToken); // ← store token in axios module
+    set({ user: res.data.user });
   },
 
   logout: async () => {
     await api.post('/auth/logout');
-    set({ user: null, accessToken: null });
+    clearToken();
+    set({ user: null });
   },
 
   checkAuth: async () => {
     try {
-      // Try to get a new accessToken using the refreshToken cookie
+      // Use refresh token cookie to get a new access token
       const res = await api.post('/auth/refresh');
-      const newToken = res.data.accessToken;
-      set({ accessToken: newToken });
+      setToken(res.data.accessToken);
 
-      // Now fetch user with the new token
-      const userRes = await api.get('/auth/me', {
-        headers: { Authorization: `Bearer ${newToken}` }
-      });
+      // Now fetch user with that token attached automatically
+      const userRes = await api.get('/auth/me');
       set({ user: userRes.data.user, isLoading: false });
     } catch {
-      set({ user: null, accessToken: null, isLoading: false });
+      clearToken();
+      set({ user: null, isLoading: false });
     }
   },
 
@@ -46,7 +46,5 @@ export const useAuthStore = create((set) => ({
         ...(currentStreak !== undefined && { currentStreak })
       }
     }));
-  },
-
-  setAccessToken: (token) => set({ accessToken: token })
+  }
 }));
