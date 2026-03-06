@@ -2,7 +2,18 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL + '/api',
-  withCredentials: true
+  withCredentials: true // still needed for refresh token cookie
+});
+
+// ← Attach accessToken from store to every request
+api.interceptors.request.use((config) => {
+  // dynamic import avoids circular dependency
+  const { useAuthStore } = require('../store/authStore');
+  const token = useAuthStore.getState().accessToken;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 api.interceptors.response.use(
@@ -10,7 +21,6 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // ← Don't intercept auth check calls — let them fail silently
     const isAuthCall =
       original.url.includes('/auth/me') ||
       original.url.includes('/auth/refresh') ||
@@ -20,14 +30,21 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry && !isAuthCall) {
       original._retry = true;
       try {
-        await axios.post(
+        const res = await axios.post(
           import.meta.env.VITE_API_URL + '/api/auth/refresh',
           {},
           { withCredentials: true }
         );
+        const newToken = res.data.accessToken;
+
+        // update store with new token
+        const { useAuthStore } = require('../store/authStore');
+        useAuthStore.getState().setAccessToken(newToken);
+
+        original.headers.Authorization = `Bearer ${newToken}`;
         return api(original);
       } catch {
-        window.location.href = '/login'; // only fires for protected routes now
+        window.location.href = '/login';
       }
     }
 
