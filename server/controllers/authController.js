@@ -21,12 +21,12 @@ const generateTokens = (userId) => {
 const isProduction = process.env.NODE_ENV === 'production';
 
 const setCookies = (res, accessToken, refreshToken) => {
-  res.cookie('accessToken', accessToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: 15 * 60 * 1000
-  });
+  // res.cookie('accessToken', accessToken, {
+  //   httpOnly: true,
+  //   secure: isProduction,
+  //   sameSite: isProduction ? 'none' : 'lax',
+  //   maxAge: 15 * 60 * 1000
+  // });
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
@@ -56,7 +56,8 @@ export const register = async (req, res) => {
     const { accessToken, refreshToken } = generateTokens(user._id);
     setCookies(res, accessToken, refreshToken);
 
-    res.status(201).json({
+   res.status(201).json({
+      accessToken,
       user: {
         id: user._id,
         username: user.username,
@@ -88,7 +89,8 @@ export const login = async (req, res) => {
     const { accessToken, refreshToken } = generateTokens(user._id);
     setCookies(res, accessToken, refreshToken);
 
-    res.json({
+   res.json({
+      accessToken,
       user: {
         id: user._id,
         username: user.username,
@@ -116,8 +118,8 @@ export const refresh = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user._id);
     setCookies(res, accessToken, refreshToken);
-
-    res.json({ message: 'Tokens refreshed' });
+    res.json({ accessToken });
+    // res.json({ message: 'Tokens refreshed' });
   } catch (err) {
     res.status(401).json({ message: 'Invalid refresh token' });
   }
